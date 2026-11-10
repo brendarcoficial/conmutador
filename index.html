@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSR Sistemas | Conmutador</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>CSR Sistemas Captura offline </h1>
+
+              <!-- FORMULARIO DE CAPTURA -->
+        <form id="capture-form" class="capture-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="form-tipo">TIPO</label>
+                    <select id="form-tipo" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="form-subtipo">SUBTIPO</label>
+                    <select id="form-subtipo" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="form-asunto">ASUNTO</label>
+                    <!-- Se añade el atributo list -->
+                    <input type="text" id="form-asunto" placeholder="Nombre o Solicitud (Opcional)" list="asuntos-sugeridos" autocomplete="off">
+                    <!-- Contenedor dinámico de sugerencias -->
+                    <datalist id="asuntos-sugeridos"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="form-donde">A DONDE</label>
+                    <!-- Se añade el atributo list -->
+                    <input type="text" id="form-donde" required placeholder="Ubicación/Área" list="donde-sugeridos" autocomplete="off">
+                    <!-- Contenedor dinámico de sugerencias -->
+                    <datalist id="donde-sugeridos"></datalist>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Capturar Registro</button>
+        </form>
+
+
+        <!-- SECCIÓN DE DIRECTORIO TELEFÓNICO -->
+        <div class="directory-panel">
+            <h2>📞 Directorio Telefónico</h2>
+            
+            <!-- Buscador en tiempo real (Siempre visible) -->
+            <div class="search-box-dir">
+                <input type="text" id="dir-search" placeholder="🔍 Buscar por área o extensión (Ej: Informes o 7245)...">
+            </div>
+
+            <!-- Lista de resultados (Desplegable u ocultable) -->
+            <details id="dir-results-details" class="results-details" open>
+                <summary id="dir-summary-text">📂 Mostrar/Ocultar todas las extensiones</summary>
+                <div class="dir-results-container">
+                    <ul id="dir-results-list" class="dir-results-list"></ul>
+                </div>
+            </details>
+
+            <!-- Administrador de extensiones -->
+            <details class="config-dir">
+                <summary>🛠️ Gestionar Directorio</summary>
+                <div class="input-inline" style="margin-top: 10px;">
+                    <input type="text" id="new-dir-area" placeholder="Área (Ej: Informes)">
+                    <input type="text" id="new-dir-ext" placeholder="Extensión (Ej: 7245)">
+                    <button type="button" onclick="addExtension()">Añadir</button>
+                </div>
+                <ul id="admin-dir-list" class="catalog-list" style="margin-top: 10px;"></ul>
+            </details>
+        </div>
+
+        
+
+
+        <!-- SECCIÓN DE CONFIGURACIÓN DE LISTAS DESPLEGABLES -->
+        <details class="config-panel">
+            <summary>⚙️ Gestionar Listas Desplegables (Tipo / Subtipo)</summary>
+            <div class="config-grid">
+                <div class="config-box">
+                    <h3>Administrar TIPOS</h3>
+                    <div class="input-inline">
+                        <input type="text" id="new-tipo" placeholder="Nuevo Tipo...">
+                        <button type="button" onclick="addOption('tipo')">Añadir</button>
+                    </div>
+                    <ul id="list-tipo" class="catalog-list"></ul>
+                </div>
+
+                <div class="config-box">
+                    <h3>Administrar SUBTIPOS</h3>
+                    <div class="input-inline">
+                        <input type="text" id="new-subtipo" placeholder="Nuevo Subtipo...">
+                        <button type="button" onclick="addOption('subtipo')">Añadir</button>
+                    </div>
+                    <ul id="list-subtipo" class="catalog-list"></ul>
+                </div>
+            </div>
+        </details>
+
+
+        <!-- BARRA DE FILTROS -->
+        <div class="filters-panel">
+            <h3>🔍 Filtrar Registros</h3>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label for="filter-search">Palabra clave (Asunto / A donde)</label>
+                    <input type="text" id="filter-search" placeholder="Buscar...">
+                </div>
+                <div class="form-group">
+                    <label for="filter-date">Fecha (DD/MM/AAAA)</label>
+                    <input type="text" id="filter-date" placeholder="Ej: 09/11/2026">
+                </div>
+                <div class="form-group">
+                    <label for="filter-tipo">Tipo</label>
+                    <select id="filter-tipo"></select>
+                </div>
+            </div>
+            <button type="button" onclick="exportToExcel()" class="btn-export">📊 Exportar Resultados a Excel</button>
+        </div>
+
+        <!-- TABLA DE REGISTROS -->
+        <div class="table-container">
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>TIPO</th>
+                        <th>SUBTIPO</th>
+                        <th>ASUNTO</th>
+                        <th>A DONDE</th>
+                        <th>FECHA</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
