@@ -16,7 +16,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
     background: var(--panel-bg);
     padding: 25px;
@@ -197,7 +197,7 @@ h1 {
     font-size: 14px;
 }
 
-/* Formulario de Captura */
+/* Formulario de Captura (Se adaptó para 5 columnas fijas) */
 .capture-form {
     background: #fdfdfd;
     padding: 20px;
@@ -208,7 +208,7 @@ h1 {
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 15px;
 }
 

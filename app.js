@@ -1,7 +1,7 @@
 // Catálogos iniciales por defecto
 let catalogos = JSON.parse(localStorage.getItem('bitacora_catalogos')) || {
-    tipo: ['VOCEO', 'LLAMADA'],
-    subtipo: ['FAMILIAR', 'EXTERNA', 'RESIDENTE']
+    tipo: ['LLAMADA', 'VOCEO', 'CODIGO DE EMERGENCIA'],
+    subtipo: ['INTERNA','EXTERNA', 'RESIDENTE', 'FAMILIAR', 'CAMILLERO', 'MEDICO INTERNO', 'SANOSIL', 'RPBI', 'LIMPIEZA', 'ENFERMERIA', 'TRABAJO SOCIAL', 'RAYOS X ', 'NUTRICION', 'INHALOTERAPIA', 'VEHICULO/DOCUMENTO', 'AZUL', 'ROJO', 'AMARILLO', 'ROSA', 'AMBAR', 'VIOLETA', 'HORA DORADA', 'ICTUS', 'MATER', 'INFARTO', 'BLANCO', 'OTRO'    ]
 };
 
 // Directorio telefónico inicial por defecto
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderDirectory();
     renderAdminDirectory();
     
-    // NUEVO: Inicializar las sugerencias de autocompletado
+    // Inicializar las sugerencias de autocompletado
     renderAutocompletes();
     
     // Forzar que inicie cerrado al cargar la página por primera vez
@@ -45,22 +45,32 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dir-search').addEventListener('input', renderDirectory);
 });
 
-
 // =========================================================================
 // LÓGICA DEL DIRECTORIO TELEFÓNICO
 // =========================================================================
 
-// Renderiza los resultados de búsqueda del directorio en tiempo real
 function renderDirectory() {
     const list = document.getElementById('dir-results-list');
+    const detailsContainer = document.getElementById('dir-results-details');
+    const summaryText = document.getElementById('dir-summary-text');
+    
     list.innerHTML = '';
     
     const searchVal = document.getElementById('dir-search').value.toLowerCase().trim();
 
-    // Filtrar el directorio según lo escrito
     const extensionesFiltradas = directorio.filter(item => {
         return item.area.toLowerCase().includes(searchVal) || item.ext.includes(searchVal);
     });
+
+    if (searchVal !== "") {
+        detailsContainer.setAttribute("open", "true");
+    }
+
+    if (searchVal === "") {
+        summaryText.textContent = `📂 Ver todas las extensiones registradas (${directorio.length})`;
+    } else {
+        summaryText.textContent = `🔍 Coincidencias encontradas (${extensionesFiltradas.length})`;
+    }
 
     extensionesFiltradas.forEach(item => {
         const li = document.createElement('li');
@@ -72,7 +82,6 @@ function renderDirectory() {
     });
 }
 
-// Renderiza la lista interna dentro de "Gestionar Directorio" para poder borrarlas
 function renderAdminDirectory() {
     const ul = document.getElementById('admin-dir-list');
     ul.innerHTML = '';
@@ -81,13 +90,12 @@ function renderAdminDirectory() {
         const li = document.createElement('li');
         li.innerHTML = `
             <span><strong>${item.area}</strong> - Ext: ${item.ext}</span>
-            <button class="btn-delete" onclick="deleteExtension(${index})">❌</button>
+            <button class="btn-delete" type="button" onclick="deleteExtension(${index})">❌</button>
         `;
         ul.appendChild(li);
     });
 }
 
-// Agregar una nueva extensión al directorio
 function addExtension() {
     const areaInput = document.getElementById('new-dir-area');
     const extInput = document.getElementById('new-dir-ext');
@@ -96,18 +104,15 @@ function addExtension() {
     const extVal = extInput.value.trim();
 
     if (areaVal && extVal) {
-        // Evitar duplicados exactos
         const existe = directorio.some(item => item.area === areaVal && item.ext === extVal);
         
         if (!existe) {
             directorio.push({ area: areaVal, ext: extVal });
             localStorage.setItem('bitacora_directorio', JSON.stringify(directorio));
             
-            // Limpiar inputs
             areaInput.value = '';
             extInput.value = '';
             
-            // Actualizar vistas
             renderDirectory();
             renderAdminDirectory();
         } else {
@@ -118,7 +123,6 @@ function addExtension() {
     }
 }
 
-// Eliminar una extensión del directorio
 function deleteExtension(index) {
     if (confirm('¿Seguro que deseas eliminar esta extensión del directorio?')) {
         directorio.splice(index, 1);
@@ -128,9 +132,8 @@ function deleteExtension(index) {
     }
 }
 
-
 // =========================================================================
-// LÓGICA DE CAPTURA Y CONFIGURACIÓN GENERAL (MANTENIDA)
+// LÓGICA DE CAPTURA Y CONFIGURACIÓN GENERAL
 // =========================================================================
 
 function renderCatalogs() {
@@ -141,7 +144,7 @@ function renderCatalogs() {
             const li = document.createElement('li');
             li.innerHTML = `
                 <span>${option}</span>
-                <button class="btn-delete" onclick="deleteOption('${cat}', ${index})">❌</button>
+                <button class="btn-delete" type="button" onclick="deleteOption('${cat}', ${index})">❌</button>
             `;
             ul.appendChild(li);
         });
@@ -200,10 +203,14 @@ function captureData() {
     
     const fechaFormateada = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
+    const asuntoRaw = document.getElementById('form-asunto').value.trim();
+    const asuntoFinal = asuntoRaw ? asuntoRaw.toUpperCase() : "-";
+
     const nuevoRegistro = {
+        operador: document.getElementById('form-operador').value.trim().toUpperCase(),
         tipo: document.getElementById('form-tipo').value,
         subtipo: document.getElementById('form-subtipo').value,
-        asunto: document.getElementById('form-asunto').value.toUpperCase(),
+        asunto: asuntoFinal,
         donde: document.getElementById('form-donde').value.toUpperCase(),
         fecha: fechaFormateada
     };
@@ -211,10 +218,12 @@ function captureData() {
     registros.push(nuevoRegistro);
     localStorage.setItem('bitacora_registros', JSON.stringify(registros));
     
+    // Dejamos el operador fijo para agilizar capturas seguidas, limpiamos lo demás
     document.getElementById('form-asunto').value = '';
     document.getElementById('form-donde').value = '';
     
     renderTable();
+    renderAutocompletes();
 }
 
 function renderTable() {
@@ -226,7 +235,10 @@ function renderTable() {
     const tipoVal = document.getElementById('filter-tipo').value;
 
     const registrosFiltrados = registros.filter(reg => {
-        const cumplePalabra = reg.asunto.toLowerCase().includes(searchVal) || reg.donde.toLowerCase().includes(searchVal);
+        const opString = reg.operador || "";
+        const cumplePalabra = reg.asunto.toLowerCase().includes(searchVal) || 
+                             reg.donde.toLowerCase().includes(searchVal) || 
+                             opString.toLowerCase().includes(searchVal);
         const cumpleFecha = reg.fecha.includes(dateVal);
         const cumpleTipo = tipoVal === "" || reg.tipo === tipoVal;
         return cumplePalabra && cumpleFecha && cumpleTipo;
@@ -237,13 +249,14 @@ function renderTable() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td>${reg.operador || "-"}</td>
             <td>${reg.tipo}</td>
             <td>${reg.subtipo}</td>
             <td>${reg.asunto}</td>
             <td>${reg.donde}</td>
             <td>${reg.fecha}</td>
             <td>
-                <button class="btn-delete" onclick="deleteRecord(${originalIndex})">Eliminar</button>
+                <button type="button" class="btn-delete" onclick="deleteRecord(${originalIndex})">Eliminar</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -255,106 +268,10 @@ function deleteRecord(index) {
         registros.splice(index, 1);
         localStorage.setItem('bitacora_registros', JSON.stringify(registros));
         renderTable();
+        renderAutocompletes();
     }
 }
-// =========================================================================
-// EXPORTACIÓN A EXCEL EN COLUMNAS REALES (FORMATO HTML-XLS)
-// =========================================================================
-function exportToExcel() {
-    // 1. Obtener los filtros actuales para saber qué exportar
-    const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
-    const dateVal = document.getElementById('filter-date').value.trim();
-    const tipoVal = document.getElementById('filter-tipo').value;
 
-    // 2. Filtrar el arreglo exactamente igual que en la pantalla
-    const registrosAExportar = registros.filter(reg => {
-        const cumplePalabra = reg.asunto.toLowerCase().includes(searchVal) || reg.donde.toLowerCase().includes(searchVal);
-        const cumpleFecha = reg.fecha.includes(dateVal);
-        const cumpleTipo = tipoVal === "" || reg.tipo === tipoVal;
-        return cumplePalabra && cumpleFecha && cumpleTipo;
-    });
-
-    if (registrosAExportar.length === 0) {
-        alert("No hay registros en la tabla para exportar con los filtros actuales.");
-        return;
-    }
-
-    // 3. Construir una estructura de tabla HTML con estilos que Excel entiende perfectamente nativo
-    let excelTemplate = `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://w3.org">
-        <head>
-            <meta charset="utf-8">
-            <!--[if gte mso 9]>
-            <xml>
-                <x:ExcelWorkbook>
-                    <x:ExcelWorksheets>
-                        <x:ExcelWorksheet>
-                            <x:Name>Bitácora</x:Name>
-                            <x:WorksheetOptions>
-                                <x:DisplayGridlines/>
-                            </x:WorksheetOptions>
-                        </x:ExcelWorksheet>
-                    </x:ExcelWorksheets>
-                </x:ExcelWorkbook>
-            </xml>
-            <![endif]-->
-            <style>
-                th { background-color: #cccccc; font-weight: bold; border: 0.5pt solid #999999; }
-                td { border: 0.5pt solid #999999; mso-number-format:"\\@"; } /* mso-number-format fuerza formato texto para no romper fechas */
-            </style>
-        </head>
-        <body>
-            <table>
-                <thead>
-                    <tr>
-                        <th>TIPO</th>
-                        <th>SUBTIPO</th>
-                        <th>ASUNTO</th>
-                        <th>A DONDE</th>
-                        <th>FECHA DE CAPTURA</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    // 4. Inyectar las filas correspondientes
-    registrosAExportar.forEach(reg => {
-        excelTemplate += `
-            <tr>
-                <td>${reg.tipo}</td>
-                <td>${reg.subtipo}</td>
-                <td>${reg.asunto}</td>
-                <td>${reg.donde}</td>
-                <td>${reg.fecha}</td>
-            </tr>
-        `;
-    });
-
-    excelTemplate += `
-                </tbody>
-            </table>
-        </body>
-        </html>
-    `;
-
-    // 5. Crear el archivo binario simulando una hoja XLS real
-    const blob = new Blob([excelTemplate], { type: "application/vnd.ms-excel;charset=utf-8;" });
-    
-    // 6. Ejecutar la descarga en Google Chrome
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        
-        const fechaArchivo = new Date().toISOString().slice(0, 10);
-        link.setAttribute("download", `Bitacora_Captura_${fechaArchivo}.xls`); // Forzamos extensión .xls
-        
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
 // =========================================================================
 // FUNCIÓN DE AUTOCOMPLETADO (SUGERENCIAS DINÁMICAS)
 // =========================================================================
@@ -406,3 +323,56 @@ deleteRecord = function(index) {
     originalDeleteRecord(index);
     renderAutocompletes(); // Actualiza la lista al eliminar
 };
+
+// =========================================================================
+// EXPORTACIÓN A EXCEL (CONSTRUCCIÓN DINÁMICA MEDIANTE TABLA)
+// =========================================================================
+function exportToExcel() {
+    const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
+    const dateVal = document.getElementById('filter-date').value.trim();
+    const tipoVal = document.getElementById('filter-tipo').value;
+
+    // Filtrar los registros exactamente igual que en la pantalla
+    const registrosAExportar = registros.filter(reg => {
+        const opString = reg.operador || "";
+        const cumplePalabra = reg.asunto.toLowerCase().includes(searchVal) || 
+                             reg.donde.toLowerCase().includes(searchVal) || 
+                             opString.toLowerCase().includes(searchVal);
+        const cumpleFecha = reg.fecha.includes(dateVal);
+        const cumpleTipo = tipoVal === "" || reg.tipo === tipoVal;
+        return cumplePalabra && cumpleFecha && cumpleTipo;
+    });
+
+    if (registrosAExportar.length === 0) {
+        alert("No hay registros en la tabla para exportar con los filtros actuales.");
+        return;
+    }
+
+    // Construir dinámicamente las filas de la tabla de Excel
+    let filasHtml = "";
+    registrosAExportar.forEach(reg => {
+        filasHtml += `<tr><td>${reg.operador || "-"}</td><td>${reg.tipo}</td><td>${reg.subtipo}</td><td>${reg.asunto}</td><td>${reg.donde}</td><td>${reg.fecha}</td></tr>`;
+    });
+
+    // Plantilla HTML con formato MIME que Excel interpreta de forma nativa en columnas
+    const excelTemplate = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://w3.org">
+        <head><meta charset="utf-8"><style>th{background:#ccc;font-weight:bold;border:0.5pt solid #999;}td{border:0.5pt solid #999;mso-number-format:"\\@";}</style></head>
+        <body><table><thead><tr><th>OPERADOR</th><th>TIPO</th><th>SUBTIPO</th><th>ASUNTO</th><th>A DONDE</th><th>FECHA DE CAPTURA</th></tr></thead>
+        <tbody>${filasHtml}</tbody></table></body></html>
+    `;
+
+    // Generar el archivo y simular la descarga en Chrome
+    const blob = new Blob([excelTemplate], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        link.setAttribute("href", URL.createObjectURL(blob));
+        const fechaArchivo = new Date().toISOString().slice(0, 10);
+        link.setAttribute("download", `Bitacora_Captura_${fechaArchivo}.xls`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
