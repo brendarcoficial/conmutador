@@ -7,6 +7,10 @@
     --danger-color: #d9534f;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
@@ -50,15 +54,14 @@ h1 {
 .search-box-dir input {
     width: 100%;
     padding: 10px;
-    font-size: 15px;
+    font-size: 16px; /* Evita zoom automático en iPhone/Android */
     border: 1px solid #66d9e8;
     border-radius: 4px;
-    box-sizing: border-box;
 }
 
 .dir-results-container {
     margin-top: 10px;
-    max-height: 150px;
+    max-height: 180px;
     overflow-y: auto;
 }
 
@@ -175,9 +178,15 @@ h1 {
 
 .input-inline input {
     flex: 1;
-    padding: 6px;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    min-width: 0;
+}
+
+.input-inline button {
+    padding: 8px 14px;
+    cursor: pointer;
 }
 
 .catalog-list {
@@ -197,7 +206,7 @@ h1 {
     font-size: 14px;
 }
 
-/* Formulario de Captura (Se adaptó para 5 columnas fijas) */
+/* Formulario de Captura */
 .capture-form {
     background: #fdfdfd;
     padding: 20px;
@@ -225,17 +234,18 @@ h1 {
 }
 
 .form-group input, .form-group select {
-    padding: 8px;
+    padding: 10px 8px;
     border: 1px solid #aaa;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 15px;
     background-color: #fff;
+    width: 100%;
 }
 
 .btn-submit {
     margin-top: 15px;
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background-color: var(--primary-color);
     color: white;
     border: none;
@@ -272,7 +282,7 @@ h1 {
 .btn-export {
     margin-top: 15px;
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background-color: #1f7246;
     color: white;
     border: none;
@@ -290,13 +300,15 @@ h1 {
 /* Tabla de Datos */
 .table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Deslizamiento suave en celulares */
+    border: 1px solid var(--table-border);
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
     background: #b3b3b3;
+    min-width: 700px; /* Evita que las columnas se aplasten en pantallas chicas */
 }
 
 th, td {
@@ -325,9 +337,63 @@ tr:nth-child(even) td {
     background: var(--danger-color);
     color: white;
     border: none;
-    padding: 3px 8px;
+    padding: 5px 10px;
     border-radius: 3px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 12px;
 }
 .btn-delete:hover { background: #c9302c; }
+
+/* =========================================================================
+   ADAPTACIÓN RESPONSIVA (TABLETS Y CELULARES)
+   ========================================================================= */
+
+/* Pantallas medianas / Tablets (menos de 992px) */
+@media (max-width: 992px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablet */
+    }
+    
+    .filters-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Pantallas pequeñas / Celulares (menos de 650px) */
+@media (max-width: 650px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    /* Apilar todo en 1 sola columna cómoda para el pulgar */
+    .config-grid,
+    .form-grid,
+    .filters-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* En el directorio móvil, apilar los inputs de agregar área y extensión */
+    .config-dir .input-inline {
+        flex-direction: column;
+    }
+
+    .dir-results-list {
+        grid-template-columns: 1fr;
+    }
+
+    /* Botones más altos y fáciles de presionar en pantalla táctil */
+    .btn-submit, .btn-export {
+        padding: 14px;
+        font-size: 16px;
+    }
+}
